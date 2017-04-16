@@ -1,14 +1,8 @@
-#!/usr/bin/env python
-# -*- coding: utf8 -*-
-
 import RPi.GPIO as GPIO
 import MFRC522
 import signal
 import mcpi.minecraft as minecraft
-import mcpi.block as block
-import time
-import os
-
+import time,os
 
 # Capture SIGINT for cleanup when the script is aborted
 def end_read(signal,frame):
@@ -17,18 +11,19 @@ def end_read(signal,frame):
     continue_reading = False
     GPIO.cleanup()
 
-skin=['ironman','default','batman','pig']
+#Replace skin file names here
+skinFile=['ironman','default','batman','pig'] 
 skinNames=['Iron Man', 'Herobrine', 'Batman']
 idx=1;
-winSizeX=1800
+winSizeX=1800 #set minecraft window size 
 winSizeY=800
 
+#create minecraft connection
 mc = minecraft.Minecraft.create()
 
 continue_reading = True
-
+#Replace the card IDs here
 UIDs=['160,41,83,122','144,24,1,118','176,221,21,124']
-#UIDs=['0,20,197,128','0,13,25,131','44,23,219,171']
 
 # Hook the SIGINT
 signal.signal(signal.SIGINT, end_read)
@@ -36,11 +31,10 @@ signal.signal(signal.SIGINT, end_read)
 # Create an object of the class MFRC522
 MIFAREReader = MFRC522.MFRC522()
 i=0;
-# Welcome message
-print "Welcome to the MFRC522 data read example"
+
 print "Press Ctrl-C to stop."
 
-# This loop keeps checking for chips. If one is near it will get the UID and authenticate
+# This loop keeps checking for cards. 
 while continue_reading:
     
     # Scan for cards    
@@ -55,41 +49,18 @@ while continue_reading:
 
     # If we have the UID, continue
     if status == MIFAREReader.MI_OK:
-
-        # Print UID
-        print "Card read UID: "+str(uid[0])+","+str(uid[1])+","+str(uid[2])+","+str(uid[3])
+        # Print UID        
+        print "Card UID: "+str(uid[0])+","+str(uid[1])+","+\
+        str(uid[2])+","+str(uid[3])
         uid_str=str(uid[0])+","+str(uid[1])+","+str(uid[2])+","+str(uid[3]);
 
         try:
             idx=UIDs.index(uid_str)
-            os.system('cp //home/pi/mcpi/data/images/mob/skins/'+ skin[idx]+'.png //home/pi/mcpi/data/images/mob/char.png')
+            os.system('cp skins/'+ skinFile[idx]
+                      +'.png //home/pi/mcpi/data/images/mob/char.png')
             mc.postToChat('Skin changed to: '+skinNames[idx]+'!')
             i=i+1;
-            os.system("xdotool search --name 'Minecraft - PI'  windowsize " + str(winSizeX)+ ' ' +str(winSizeY+i%2))
-            #os.system("xdotool search --name 'Minecraft - PI'  windowsize " + str(winSizeX)+ ' ' +str(winSizeY))
-
-            
-            #break
+            os.system("xdotool search --name 'Minecraft - PI'  windowsize "
+                      + str(winSizeX)+ ' ' +str(winSizeY+i%2))          
         except ValueError:
             print("Oops! Not in the list")
-        
-    
-##        # This is the default key for authentication
-##        key = [0xFF,0xFF,0xFF,0xFF,0xFF,0xFF]
-##        
-##        # Select the scanned tag
-##        MIFAREReader.MFRC522_SelectTag(uid)
-##
-##        # Authenticate
-##        status = MIFAREReader.MFRC522_Auth(MIFAREReader.PICC_AUTHENT1A, 8, key, uid)
-##
-##        # Check if authenticated
-##        if status == MIFAREReader.MI_OK:
-##            MIFAREReader.MFRC522_Read(8)
-##            MIFAREReader.MFRC522_StopCrypto1()
-##        else:
-##            print "Authentication error"
-
-        #print "finished"
-
-
